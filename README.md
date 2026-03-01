@@ -11,7 +11,6 @@ This repository contains "Abyss Submarine," a continuous-state Reinforcement Lea
 
 ## 📁 Repository Structure
 * `main.py` - The main simulation loop and Pygame rendering engine.
-* `Report_Abyss_Submarine.pdf` - The technical documentation detailing the MDP formulation, network architecture, and reward shaping methodology.
 
 ## 🎮 Demo Video
 Watch the trained AI agent actively dodging dynamic obstacles here:
