@@ -8,7 +8,7 @@ import sys
 from collections import deque
 
 # ==========================================
-# 1. 深度强化学习网络 (DQN) - 维持核心结构不变
+# 1. Deep Q-Network (DQN) Architecture
 # ==========================================
 class DQN(nn.Module):
     def __init__(self, input_dim, output_dim):
@@ -27,33 +27,33 @@ class DQN(nn.Module):
         return self.fc(x)
 
 # ==========================================
-# 2. 游戏实体类定义 (深海潜艇主题换皮)
+# 2. Game Entities Definition
 # ==========================================
 class Submarine:
-    """潜艇基类"""
+    """Base class for Submarines"""
     def __init__(self, x, y, color):
         self.position = pygame.Vector2(x, y)
         self.color = color
         self.speed = 5
-        self.max_hull = 10  # 装甲值 (生命值)
+        self.max_hull = 10  # Hull integrity (Health points)
         self.hull = self.max_hull  
         self.size = 40
         self.facing = pygame.Vector2(0, -1) 
 
     def draw(self, screen):
-        # 绘制潜艇主体 (椭圆形)
+        # Draw the main body of the submarine (ellipse)
         rect = (self.position.x, self.position.y, self.size, self.size)
         pygame.draw.ellipse(screen, self.color, rect)
         
-        # 绘制潜艇的声纳探测针/首部指示器
+        # Draw the sonar probe / front directional indicator
         center = (self.position.x + self.size/2, self.position.y + self.size/2)
         end_pos = (center[0] + self.facing.x * 25, center[1] + self.facing.y * 25)
         pygame.draw.line(screen, (200, 255, 255), center, end_pos, 3)
 
 class Explorer(Submarine):
-    """玩家控制的深海探测器"""
+    """Player-controlled Explorer submarine"""
     def __init__(self, x, y):
-        super().__init__(x, y, (0, 255, 150)) # 荧光海绿色
+        super().__init__(x, y, (0, 255, 150)) # Fluorescent sea green
 
     def handle_input(self, keys):
         if keys[pygame.K_w] or keys[pygame.K_UP]: 
@@ -70,9 +70,9 @@ class Explorer(Submarine):
             self.facing = pygame.Vector2(1, 0)
 
 class AUV(Submarine):
-    """AI 控制的敌对自主航行器 (强化学习 Agent)"""
+    """AI-controlled Autonomous Underwater Vehicle (RL Agent)"""
     def __init__(self, x, y):
-        super().__init__(x, y, (255, 50, 100)) # 危险警告红
+        super().__init__(x, y, (255, 50, 100)) # Danger warning red
         self.action_space = [0, 1, 2, 3, 4] 
         self.facing = pygame.Vector2(0, 1)
 
@@ -100,23 +100,23 @@ class AUV(Submarine):
             self.facing = pygame.Vector2(1, 0)
 
 class Torpedo:
-    """鱼雷/深水炸弹"""
+    """Torpedo / Depth Charge obstacle"""
     def __init__(self, x, y, dx, dy, color=(255, 200, 0)):
         self.position = pygame.Vector2(x, y)
         self.direction = pygame.Vector2(dx, dy).normalize()
-        self.speed = 8 # 模拟水下阻力，速度稍微放缓
+        self.speed = 8 # Simulate underwater drag
         self.color = color
 
     def update(self):
         self.position += self.direction * self.speed
 
     def draw(self, screen):
-        # 鱼雷画成一个小胶囊状
+        # Draw the torpedo as a small capsule
         pygame.draw.circle(screen, self.color, (int(self.position.x), int(self.position.y)), 6)
         pygame.draw.circle(screen, (255,255,255), (int(self.position.x - self.direction.x*4), int(self.position.y - self.direction.y*4)), 3)
 
 class Bubble:
-    """纯视觉特效：深海上升的气泡"""
+    """Visual Effect: Rising deep sea bubbles"""
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -133,7 +133,7 @@ class Bubble:
         pygame.draw.circle(screen, (100, 150, 255, 128), (int(self.x), int(self.y)), self.size, 1)
 
 # ==========================================
-# 3. 训练器与核心算法 (包装为航行器神经网络)
+# 3. Trainer and Core RL Algorithm
 # ==========================================
 class Trainer:
     def __init__(self):
@@ -205,7 +205,7 @@ class Trainer:
         self.optimizer.step()
 
 # ==========================================
-# 4. 游戏主循环 (深海模拟器环境)
+# 4. Main Simulation Loop
 # ==========================================
 class AbyssSimulation:
     def __init__(self):
@@ -220,7 +220,7 @@ class AbyssSimulation:
         self.title_font = pygame.font.Font(None, 100) 
         self.info_font = pygame.font.Font(None, 36)   
         
-        # 深海配色
+        # Deep sea color palette
         self.bg_color = (5, 15, 35) 
         
         self.trainer = Trainer()
@@ -229,7 +229,7 @@ class AbyssSimulation:
         self.epsilon_min = 0.01
         
         self.bubbles = []
-        self.ocean_current = -0.5 # 新机制：持续向左的深海暗流阻力
+        self.ocean_current = -0.5 # Continuous leftward ocean current drift
         
         self.reset_env()
 
@@ -242,14 +242,14 @@ class AbyssSimulation:
         
     def show_start_screen(self):
         waiting = True
-        # 预先生成一些气泡
+        # Pre-generate some ambient bubbles
         for _ in range(50):
             self.bubbles.append(Bubble(random.randint(0, self.window_size), random.randint(0, self.window_size)))
             
         while waiting:
             self.screen.fill(self.bg_color) 
             
-            # 更新气泡
+            # Update ambient bubbles
             for b in self.bubbles:
                 b.update()
                 b.draw(self.screen)
@@ -337,7 +337,7 @@ class AbyssSimulation:
             if frame_count % 40 == 0:
                 self.torpedoes.append(Torpedo(random.randint(0, self.window_size), 0, 0, 1, (255, 100, 100)))
 
-            # 新增物理机制：应用环境暗流推力
+            # Physics mechanic: Apply environmental ocean current thrust
             self.explorer.position.x += self.ocean_current
             self.auv.position.x += self.ocean_current
 
@@ -347,7 +347,7 @@ class AbyssSimulation:
             self.auv.perform_action(action)
             self.last_action = action_names[action]
 
-            # 边界限制
+            # Boundary constraints
             self.explorer.position.x = max(0, min(self.explorer.position.x, self.window_size - self.explorer.size))
             self.explorer.position.y = max(0, min(self.explorer.position.y, self.window_size - self.explorer.size))
             self.auv.position.x = max(0, min(self.auv.position.x, self.window_size - self.auv.size))
@@ -361,7 +361,7 @@ class AbyssSimulation:
             auv_rect = pygame.Rect(self.auv.position.x, self.auv.position.y, self.auv.size, self.auv.size)
 
             for t in self.torpedoes[:]:
-                t.position.x += self.ocean_current # 鱼雷也受水流影响
+                t.position.x += self.ocean_current # Torpedoes are also affected by the current
                 t.update()
                 
                 if t.position.y < 0 or t.position.y > self.window_size or t.position.x < 0 or t.position.x > self.window_size:
@@ -389,10 +389,10 @@ class AbyssSimulation:
             if self.epsilon > self.epsilon_min:
                 self.epsilon *= self.epsilon_decay
 
-            # 视觉渲染
+            # Visual rendering
             self.screen.fill(self.bg_color)
             
-            # 渲染环境气泡
+            # Render environmental bubbles
             if frame_count % 5 == 0:
                 self.bubbles.append(Bubble(random.randint(0, self.window_size), self.window_size))
             for b in self.bubbles[:]:
